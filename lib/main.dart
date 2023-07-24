@@ -1,49 +1,53 @@
 import 'package:flutter/material.dart';
-import 'package:new_app/items.dart';
+import 'package:new_app/views/expandable_view.dart';
+import 'package:new_app/views/pages_view.dart';
+import 'package:new_app/views/panes_view.dart';
 
 void main() {
   runApp(const MainApp());
 }
 
-class MainApp extends StatelessWidget {
+class MainApp extends StatefulWidget {
   const MainApp({super.key});
+
+  @override
+  State<MainApp> createState() => _MainAppState();
+}
+
+class _MainAppState extends State<MainApp> {
+  ValueNotifier<ViewMode> viewModeNotifier =
+      ValueNotifier<ViewMode>(ViewMode.panes);
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: Scaffold(
-        body: ListView.builder(
-          padding: const EdgeInsets.symmetric(vertical: 24),
-          itemCount: items.length,
-          itemBuilder: (context, index) {
-            MapEntry<String, List> itemList = items.entries.toList()[index];
+      home: ValueListenableBuilder(
+        valueListenable: viewModeNotifier,
+        builder: (BuildContext context, dynamic value, Widget? child) {
+          if (value == ViewMode.expandable) {
+            return const ExpandableView();
+          }
 
-            return ExpansionTile(
-              backgroundColor: Colors.grey[100],
-              title: Text(itemList.key),
-              childrenPadding: const EdgeInsets.symmetric(horizontal: 24),
-              expandedCrossAxisAlignment: CrossAxisAlignment.start,
-              children: itemList.value
-                  .map(
-                    (e) => e is String
-                        ? ListTile(title: Text(e))
-                        : ExpansionTile(
-                            backgroundColor: Colors.grey[200],
-                            title: Text(e.key),
-                            childrenPadding:
-                                const EdgeInsets.symmetric(horizontal: 24),
-                            expandedCrossAxisAlignment:
-                                CrossAxisAlignment.start,
-                            children: (e.value as List<String>)
-                                .map((e0) => ListTile(title: Text(e0)))
-                                .toList(),
-                          ),
-                  )
-                  .toList(),
-            );
-          },
-        ),
+          if (value == ViewMode.pages) {
+            return const PagesView();
+          }
+
+          if (value == ViewMode.panes) {
+            return const PanesView();
+          }
+
+          return Container();
+        },
       ),
     );
   }
+
+  @override
+  void dispose() {
+    viewModeNotifier.dispose();
+
+    super.dispose();
+  }
 }
+
+enum ViewMode { expandable, pages, panes, dropdown }
